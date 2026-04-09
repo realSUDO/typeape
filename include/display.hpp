@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "wordtracker.hpp"
+#include "statstracker.hpp"
 
 void clearScreen();
 void setGrayColor();
@@ -12,9 +13,11 @@ void setGreenColor();
 void setYellowColor();
 void resetColor();
 
+// display 3 rows; cursorRow=0 or 1, cursorWord=word index within that row
+void displayRows(const std::vector<std::vector<std::string>> &rows,
+                 const std::vector<std::vector<std::string>> &typedRows,
+                 int cursorRow, int cursorWord,
+                 const std::string &currentTyping,
+                 int secondsLeft);
 
-void displayWordBasedText(const std::vector<std::string>& targetWords, const std::vector<std::string>& typedWords, int currentWordIndex , const std::string& currentTyping);
-
-void displayWordAccuracy (const std::vector<WordResult>& results);
-void printColoredText(const std::string& text,bool isTyped = false);
-
+void displayStats(const Stats &stats);
