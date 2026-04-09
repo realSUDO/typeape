@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=TypeApe
+Comment=Terminal typing speed test
+Exec=typeape
+Icon=typeape
+Terminal=true
+Type=Application
+Categories=Game;Education;
+Keywords=typing;speed;terminal;

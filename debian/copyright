@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: typeape
+Upstream-Contact: github.com/realSUDO
+Source: https://github.com/realSUDO/typeape
+
+Files: *
+Copyright: 2026 realSUDO <github.com/realSUDO>
+License: GPL-3.0+
+
+License: GPL-3.0+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ Full license text: https://www.gnu.org/licenses/gpl-3.0.txt

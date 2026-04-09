@@ -1,0 +1,13 @@
+Source: typeape
+Section: games
+Priority: optional
+Maintainer: realSUDO <github.com/realSUDO>
+Build-Depends: debhelper (>= 12), cmake, g++
+Standards-Version: 4.5.0
+
+Package: typeape
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Terminal typing speed test
+ A fast, minimal terminal-based typing speed test.
+ Tracks WPM, accuracy, and consistency.
