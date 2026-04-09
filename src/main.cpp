@@ -7,24 +7,24 @@ int main() {
 
 	clearScreen();
 
-	std::cout << "-- dictionary test --" << std::endl;
+	std::cout << "-- random words.. test --" << std::endl;
 
 	Dictionary dict;
 
 	// show initial words
 	dict.showWords();
-	std::cout << "Total words in dictionary: " << dict.getWordCount() << std::endl;
 
-	// add new words
-	dict.addWord("alahamdulillah");
-	dict.addWord("Hey bhagwan");
-	dict.addWord("Jesus christ");
-	dict.addWord("waheguru ji");
+	std::cout << "\n -- random words.. -- " ; 
+	for (int i = 0; i < 5; ++i) {
+		std::string randomWord = dict.getRandomWord();
+		std::cout << "Random Word " << (i + 1) << ": " << randomWord << std::endl;
+	}
 
-	// show updated words.. 
-	std::cout << "\nAfter adding new words:" << std::endl;
-	dict.showWords();
-	std::cout << "Words count : " << dict.getWordCount() << std::endl;
+	std::cout << "\n -- random sentence.. -- " << std::endl;
+	for (int i = 0; i < 3; ++i) {
+		std::string randomSentence = dict.generateSentence(8); // generate sentence with 8 words
+		std::cout << "Sentece " << i+1 << ": " << randomSentence << std::endl;
+	}
 
 
 	std::cout << "Press Enter to continue...";
