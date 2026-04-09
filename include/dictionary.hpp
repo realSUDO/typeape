@@ -27,6 +27,6 @@ public:
   std::string generateSentence(int wordCount) const;
 
 private:
-  std::string filePath;
+  std::string filePath = TYPEAPE_DATA_DIR "/words.txt";
   mutable std::mt19937 rng;
 };

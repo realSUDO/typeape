@@ -10,5 +10,7 @@ target_include_directories(typeape PRIVATE include)
 target_link_libraries(typeape pthread)
 target_compile_options(typeape PRIVATE -O2 -Wall)
 
+target_compile_definitions(typeape PRIVATE TYPEAPE_DATA_DIR="${CMAKE_INSTALL_PREFIX}/share/typeape/data")
+
 install(TARGETS typeape DESTINATION bin)
 install(FILES data/words.txt DESTINATION share/typeape/data)
