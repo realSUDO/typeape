@@ -114,8 +114,9 @@ void Game::run() {
   signal(SIGWINCH, onResize);
 
   Dictionary dict;
-  // try installed path first, fall back to local dev path
-  if (std::ifstream("/usr/local/share/typeape/data/words.txt").good())
+  if (std::ifstream("/usr/share/typeape/data/words.txt").good())
+    dict.setFilePath("/usr/share/typeape/data/words.txt");
+  else if (std::ifstream("/usr/local/share/typeape/data/words.txt").good())
     dict.setFilePath("/usr/local/share/typeape/data/words.txt");
   else
     dict.setFilePath("data/words.txt");
