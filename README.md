@@ -1,5 +1,9 @@
 # TypeApe
 
+<p align="center">
+  <img width="250" height="250" alt="favicon" src="https://github.com/user-attachments/assets/16539938-1928-4fde-a097-e1b829adaf5c" />
+</p>
+
 A fast, minimal terminal typing speed test — inspired by MonkeyType.
 
 ## Features
