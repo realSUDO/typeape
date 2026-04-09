@@ -3,7 +3,7 @@
 A fast, minimal terminal typing speed test — inspired by MonkeyType.
 
 ## Features
-- 479k word dictionary, streamed randomly (zero memory load)
+- Large word dictionary, streamed randomly (zero memory load)
 - Real-time WPM, raw WPM, accuracy, consistency stats
 - 3-row scrolling display with async word prefetch
 - Timer: 15s / 30s / 45s / 60s / custom (inline input box)
@@ -13,26 +13,39 @@ A fast, minimal terminal typing speed test — inspired by MonkeyType.
 
 ## Install
 
-### Script (recommended)
+### Arch Linux (AUR)
 ```bash
+yay -S typeape
+```
+
+### Homebrew (macOS / Linux)
+```bash
+brew tap realSUDO/typeape
+brew install typeape
+```
+
+### Script — Debian, Ubuntu, Fedora, any distro
+```bash
+git clone https://github.com/realSUDO/typeape.git
+cd typeape
 bash scripts/install.sh
 ```
 
-### Arch Linux (AUR)
+### Make
 ```bash
-makepkg -si
-```
-
-### Debian/Ubuntu
-```bash
-dpkg-buildpackage -us -uc
-sudo dpkg -i ../typeape_*.deb
-```
-
-### Manual (make)
-```bash
+git clone https://github.com/realSUDO/typeape.git
+cd typeape
 make
 sudo make install
+```
+
+### CMake
+```bash
+git clone https://github.com/realSUDO/typeape.git
+cd typeape
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+sudo cmake --install build
 ```
 
 ## Usage
