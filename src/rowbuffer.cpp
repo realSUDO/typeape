@@ -1,8 +1,6 @@
 #include "../include/rowbuffer.hpp"
-#include <string>
 
 RowBuffer::RowBuffer(Dictionary &dict) : dict(dict) {
-  // seed initial words synchronously
   for (int i = 0; i < PREFETCH_AHEAD; i++) {
     words.push_back(dict.generateSentence(1));
     typed.push_back("");
@@ -24,9 +22,7 @@ void RowBuffer::prefetchLoop() {
     });
     if (stop.load()) break;
     lock.unlock();
-
     std::string w = dict.generateSentence(1);
-
     lock.lock();
     words.push_back(std::move(w));
     typed.push_back("");
@@ -64,16 +60,25 @@ bool RowBuffer::commitWord(const std::string &t) {
   cursorAbs++;
 
   int wpr = calcWordsPerRow();
-  // cursor is now on row 2 (0-indexed) relative to window — scroll
   int rel = cursorAbs - windowStart;
   bool scrolled = false;
   if (rel >= wpr * 2) {
-    windowStart += wpr; // drop row 0, shift up
+    windowStart += wpr;
     scrolled = true;
   }
 
   cv.notify_all();
   return scrolled;
+}
+
+void RowBuffer::uncommitWord(std::string &restoredTyping) {
+  std::lock_guard<std::mutex> lock(mtx);
+  if (cursorAbs <= 0) return;
+  cursorAbs--;
+  int wpr = calcWordsPerRow();
+  if (cursorAbs < windowStart) windowStart -= wpr;
+  restoredTyping = typed[cursorAbs];
+  typed[cursorAbs] = "";
 }
 
 std::string RowBuffer::currentTarget() const {

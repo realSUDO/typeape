@@ -4,25 +4,90 @@
 #include "../include/input.hpp"
 #include "../include/rowbuffer.hpp"
 #include "../include/statstracker.hpp"
+#include <algorithm>
 #include <chrono>
 #include <csignal>
 #include <iostream>
+#include <string>
+#include <unistd.h>
 
 static volatile sig_atomic_t g_resized = 0;
 static void onResize(int) { g_resized = 1; }
 
-static int chooseTimer() {
-  std::cout << "Select timer:\n"
-            << "  1) 15s\n  2) 30s (default)\n  3) 45s\n  4) 60s\n  5) Custom\n> ";
-  int choice;
-  std::cin >> choice;
-  switch (choice) {
-    case 1: return 15;
-    case 3: return 45;
-    case 4: return 60;
-    case 5: { int s; std::cout << "Seconds: "; std::cin >> s; return s; }
-    default: return 30;
+static int chooseTimer(KeyboardInput &input) {
+  const int options[] = {15, 30, 45, 60, 0};
+  const char *labels[] = {"15s", "30s", "45s", "60s", "custom"};
+  const int count = 5;
+  int selected = 1;
+
+  while (true) {
+    clearScreen();
+    displayHeader();
+    std::cout << "\n  select timer\n\n";
+    for (int i = 0; i < count; i++) {
+      if (i == selected)
+        std::cout << "  \033[97m> " << labels[i] << "\033[0m\n";
+      else
+        std::cout << "  \033[90m  " << labels[i] << "\033[0m\n";
+    }
+    std::cout << "\n  [↑↓] navigate  [enter] confirm\n";
+    displayHeaderFooter();
+
+    char key = input.getKey();
+    if (key == '\033') {
+      char seq[2];
+      read(STDIN_FILENO, &seq[0], 1);
+      read(STDIN_FILENO, &seq[1], 1);
+      if (seq[0] == '[') {
+        if (seq[1] == 'A') selected = (selected - 1 + count) % count;
+        if (seq[1] == 'B') selected = (selected + 1) % count;
+      }
+    } else if (key == '\r' || key == '\n') {
+      if (options[selected] == 0) {
+        // draw inline input box
+        std::string buf;
+        while (true) {
+          // redraw screen with box
+          clearScreen();
+          displayHeader();
+          std::cout << "\n  select timer\n\n";
+          for (int i = 0; i < count; i++) {
+            if (i == selected)
+              std::cout << "  \033[97m> " << labels[i] << "\033[0m\n";
+            else
+              std::cout << "  \033[90m  " << labels[i] << "\033[0m\n";
+          }
+          // box
+          std::cout << "\n";
+          std::cout << "  ┌─────────────────────┐\n";
+          std::cout << "  │ seconds: " << buf << "\033[97m_\033[0m";
+          int pad = 11 - (int)buf.size();
+          std::cout << std::string(std::max(0,pad), ' ') << "│\n";
+          std::cout << "  └─────────────────────┘\n";
+          std::cout.flush();
+
+          char k = input.getKey();
+          if (k == '\r' || k == '\n') {
+            if (!buf.empty()) return std::stoi(buf);
+          } else if (k == 27) {
+            break; // cancel
+          } else if ((k == 127 || k == 8) && !buf.empty()) {
+            buf.pop_back();
+          } else if (k >= '0' && k <= '9' && buf.size() < 5) {
+            buf += k;
+          }
+        }
+        selected = 1; // cancelled, reset to default
+        continue;
+      }
+      return options[selected];
+    }
   }
+}
+
+static void goodbye() {
+  clearScreen();
+  std::cout << "\n\n\nHave a nice day.. with your lazy fingers\n\n\n";
 }
 
 Game::Game() {}
@@ -30,22 +95,22 @@ Game::Game() {}
 void Game::run() {
   signal(SIGWINCH, onResize);
 
-  int totalSeconds = chooseTimer();
-
   Dictionary dict;
   dict.setFilePath("data/words.txt");
 
   KeyboardInput input;
   bool quit = false;
 
+  int totalSeconds = chooseTimer(input);
+
   while (!quit) {
-    // --- race setup ---
     RowBuffer buf(dict);
     StatsTracker stats;
     std::string currentTyping;
-    bool running  = true;
-    bool started  = false;
-    bool restart  = false;
+    bool freshWord   = false; // true = on new word, no chars typed yet → backspace allowed
+    bool running     = true;
+    bool started     = false;
+    bool restart     = false;
     int  secondsLeft = totalSeconds;
     auto startTime   = std::chrono::steady_clock::now();
 
@@ -63,12 +128,13 @@ void Game::run() {
 
       auto view = buf.getView();
       clearScreen();
+      displayHeader();
       displayRows(view.rows, view.typedRows, view.cursorRow, view.cursorWord,
                   currentTyping, secondsLeft);
 
-      char key = input.getKey();
+      char key = started ? input.getKeyTimeout(1000) : input.getKey();
+      if (key == 0) continue; // timeout — just redraw with updated timer
 
-      // enter = quick restart (mid-race or after)
       if (key == '\r' || key == '\n') { restart = true; break; }
 
       if (!started && key != 27) {
@@ -84,11 +150,15 @@ void Game::run() {
       }
 
       if (input.isEscape(key)) {
-        running = false; quit = true;
+        quit = true; running = false;
       } else if (input.isBackspace(key)) {
         if (!currentTyping.empty()) {
           currentTyping.pop_back();
           stats.recordKeypress(false);
+        } else if (freshWord) {
+          // restore previous word
+          buf.uncommitWord(currentTyping);
+          freshWord = false;
         }
       } else if (key == ' ') {
         if (!currentTyping.empty()) {
@@ -98,8 +168,10 @@ void Game::run() {
           stats.commitWord(target, currentTyping, elapsed);
           buf.commitWord(currentTyping);
           currentTyping.clear();
+          freshWord = true;
         }
       } else if (key >= 32 && key <= 126) {
+        freshWord = false; // locked in, can't go back
         std::string target = buf.currentTarget();
         if (currentTyping.size() < target.size() + 10) {
           bool correct = currentTyping.size() < target.size() &&
@@ -110,18 +182,18 @@ void Game::run() {
       }
     }
 
+    if (quit) { goodbye(); break; }
     if (restart) continue;
-    if (quit) break;
 
-    // --- show stats, wait for enter/esc/q ---
     std::cout << "\n\033[0 q";
     displayStats(stats.compute(totalSeconds));
-    std::cout << "\n[enter] restart  [esc/q] quit\n";
+    std::cout << "\n  [enter] restart  [esc/q] quit\n";
 
     while (true) {
       char k = input.getKey();
-      if (k == '\r' || k == '\n') { break; }          // restart
-      if (k == 27 || k == 'q')   { quit = true; break; } // exit
+      if (k == '\r' || k == '\n') { break; }
+      if (k == 27 || k == 'q')   { quit = true; break; }
     }
+    if (quit) { goodbye(); break; }
   }
 }

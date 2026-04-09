@@ -38,6 +38,9 @@ public:
   // commit typed word at cursor, advance — returns true if scroll happened
   bool commitWord(const std::string &typed);
 
+  // undo last commit (only if no chars typed in current word yet)
+  void uncommitWord(std::string &restoredTyping);
+
   std::string currentTarget() const;
 
 private:

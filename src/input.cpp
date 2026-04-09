@@ -1,4 +1,5 @@
 #include "../include/input.hpp"
+#include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -19,4 +20,17 @@ char KeyboardInput::getKey() {
     char c;
     read(STDIN_FILENO, &c, 1);
     return c;
+}
+
+char KeyboardInput::getKeyTimeout(int ms) {
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    struct timeval tv { ms / 1000, (ms % 1000) * 1000 };
+    if (select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0) {
+        char c;
+        read(STDIN_FILENO, &c, 1);
+        return c;
+    }
+    return 0; // timeout
 }

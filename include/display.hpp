@@ -6,6 +6,8 @@
 #include "statstracker.hpp"
 
 void clearScreen();
+void displayHeader();
+void displayHeaderFooter();
 void setGrayColor();
 void setWhiteColor();
 void setRedColor();
