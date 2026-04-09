@@ -50,6 +50,8 @@ std::string Dictionary::generateSentence(int wordCount) const {
       sentence += word;
       if (collected < wordCount - 1) sentence += " ";
       collected++;
+    } else {
+      file.clear();
     }
   }
 
