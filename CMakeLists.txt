@@ -10,9 +10,7 @@ target_include_directories(typeape PRIVATE include)
 target_link_libraries(typeape pthread)
 target_compile_options(typeape PRIVATE -O2 -Wall)
 
-if(NOT TYPEAPE_DATA_DIR)
-  set(TYPEAPE_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/typeape/data")
-endif()
+set(TYPEAPE_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/typeape/data" CACHE STRING "Path to typeape data directory")
 target_compile_definitions(typeape PRIVATE TYPEAPE_DATA_DIR="${TYPEAPE_DATA_DIR}")
 
 install(TARGETS typeape DESTINATION bin)
